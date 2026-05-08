@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rl-base-lib"
+version = "2.3.3"
+description = "Fast and simple RL algorithms implemented in PyTorch"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "BSD-3-Clause" }
+keywords = ["reinforcement-learning", "isaac", "rl-pytorch", "unitree"]
+dependencies = [
+  "torch>=1.10.0",
+  "torchvision>=0.5.0",
+  "numpy>=1.16.4",
+  "GitPython",
+  "onnx",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+

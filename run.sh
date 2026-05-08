@@ -35,6 +35,10 @@ cd "${UNITREE_RL_LAB_DIR}"
 # Runtime knobs (all overridable)
 # -------------------------------
 MODE="${1:-baseline_td3}"
+SMOKE="${SMOKE:-0}"
+if [[ "${MODE}" == "smoke_all" ]]; then
+    SMOKE=1
+fi
 
 TASK_TEACHER="${TASK_TEACHER:-Unitree-Go2-Velocity-Teacher-v0}"
 TASK_BASELINE="${TASK_BASELINE:-Unitree-Go2-Velocity-lab-Rough-Env-v0}"
@@ -57,6 +61,7 @@ TRAIN_FREQ="${TRAIN_FREQ:-1}"
 GRAD_STEPS="${GRAD_STEPS:-1}"
 TAU="${TAU:-0.005}"
 GAMMA="${GAMMA:-0.99}"
+OFFPOLICY_SAVE_INTERVAL="${OFFPOLICY_SAVE_INTERVAL:-5000}"
 
 TEACHER_LOG_ROOT="${TEACHER_LOG_ROOT:-${PROJECT_ROOT}/unitree_rl_lab/logs}"
 BASELINE_LOG_ROOT="${BASELINE_LOG_ROOT:-${PROJECT_ROOT}/unitree_rl_lab/logs/student_baseline}"
@@ -65,6 +70,24 @@ BASELINE_CKPT_ROOT="${BASELINE_CKPT_ROOT:-${PROJECT_ROOT}/unitree_rl_lab/logs/st
 
 TEACHER_RUN_NAME="${TEACHER_RUN_NAME:-teacher_run}"
 BASELINE_RUN_NAME="${BASELINE_RUN_NAME:-baseline_run}"
+
+if [[ "${SMOKE}" == "1" ]]; then
+    NUM_ENVS="${SMOKE_NUM_ENVS:-1}"
+    MAX_ITERATIONS="${SMOKE_MAX_ITERATIONS:-1}"
+    VIDEO_LENGTH="${SMOKE_VIDEO_LENGTH:-4}"
+    EVAL_DURATION="${SMOKE_EVAL_DURATION:-0.2}"
+    TOTAL_TIMESTEPS="${SMOKE_TOTAL_TIMESTEPS:-64}"
+    BATCH_SIZE="${SMOKE_BATCH_SIZE:-8}"
+    BUFFER_SIZE="${SMOKE_BUFFER_SIZE:-1024}"
+    LEARNING_STARTS="${SMOKE_LEARNING_STARTS:-4}"
+    TRAIN_FREQ="${SMOKE_TRAIN_FREQ:-1}"
+    GRAD_STEPS="${SMOKE_GRAD_STEPS:-1}"
+    OFFPOLICY_SAVE_INTERVAL="${SMOKE_OFFPOLICY_SAVE_INTERVAL:-1}"
+    TEACHER_RUN_NAME="${SMOKE_TEACHER_RUN_NAME:-smoke_runsh_teacher}"
+    BASELINE_RUN_NAME="${SMOKE_BASELINE_RUN_NAME:-smoke_runsh_baseline}"
+    export WANDB_MODE="${WANDB_MODE:-offline}"
+    echo "[INFO] Smoke mode enabled: NUM_ENVS=${NUM_ENVS}, MAX_ITERATIONS=${MAX_ITERATIONS}, TOTAL_TIMESTEPS=${TOTAL_TIMESTEPS}"
+fi
 
 # -------------------------------
 # Helpers
@@ -91,11 +114,42 @@ require_file() {
 TEACHER_CKPT="${TEACHER_CKPT:-$(latest_checkpoint "${TEACHER_CKPT_ROOT}")}" 
 BASELINE_CKPT="${BASELINE_CKPT:-$(latest_checkpoint "${BASELINE_CKPT_ROOT}")}" 
 
+refresh_checkpoints() {
+    if [[ -z "${TEACHER_CKPT:-}" || ! -f "${TEACHER_CKPT}" ]]; then
+        TEACHER_CKPT="$(latest_checkpoint "${TEACHER_CKPT_ROOT}")"
+    fi
+    if [[ -z "${BASELINE_CKPT:-}" || ! -f "${BASELINE_CKPT}" ]]; then
+        BASELINE_CKPT="$(latest_checkpoint "${BASELINE_CKPT_ROOT}")"
+    fi
+}
+
+ensure_teacher_checkpoint() {
+    refresh_checkpoints
+    if [[ "${SMOKE}" == "1" && ( -z "${TEACHER_CKPT:-}" || ! -f "${TEACHER_CKPT}" ) ]]; then
+        echo "[INFO] Smoke teacher checkpoint missing; generating one with teacher_train."
+        run_teacher_train
+        TEACHER_CKPT="$(latest_checkpoint "${TEACHER_CKPT_ROOT}")"
+    fi
+    require_file "${TEACHER_CKPT}" "Run 'bash run.sh teacher_train' first or set TEACHER_CKPT=/abs/path/model_x.pt"
+}
+
+ensure_baseline_checkpoint() {
+    refresh_checkpoints
+    if [[ "${SMOKE}" == "1" && ( -z "${BASELINE_CKPT:-}" || ! -f "${BASELINE_CKPT}" ) ]]; then
+        echo "[INFO] Smoke baseline checkpoint missing; generating one with baseline_train."
+        ensure_teacher_checkpoint
+        run_baseline_train
+        BASELINE_CKPT="$(latest_checkpoint "${BASELINE_CKPT_ROOT}")"
+    fi
+    require_file "${BASELINE_CKPT}" "Run 'bash run.sh baseline_train' first or set BASELINE_CKPT=/abs/path/model_x.pt"
+}
+
 usage() {
     cat <<USAGE
 Usage: bash run.sh <mode>
 
 Modes:
+  smoke_all
   teacher_train
   teacher_play
   baseline_train
@@ -108,6 +162,8 @@ Modes:
 
 Examples:
   bash run.sh teacher_train
+  SMOKE=1 bash run.sh teacher_train
+  bash run.sh smoke_all
   MAX_ITERATIONS=10 NUM_ENVS=256 bash run.sh baseline_train
   TOTAL_TIMESTEPS=200000 RL_ALGO=td3 bash run.sh baseline_td3
 USAGE
@@ -125,7 +181,7 @@ run_teacher_train() {
 }
 
 run_teacher_play() {
-    require_file "${TEACHER_CKPT}" "Run 'bash run.sh teacher_train' first or set TEACHER_CKPT=/abs/path/model_x.pt"
+    ensure_teacher_checkpoint
     python scripts/rl_base/play_teacher.py \
         "${HEADLESS_FLAG}" \
         --task "${TASK_TEACHER}" \
@@ -139,7 +195,7 @@ run_teacher_play() {
 run_baseline_train_common() {
     local run_name="$1"
     shift
-    require_file "${TEACHER_CKPT}" "Run 'bash run.sh teacher_train' first or set TEACHER_CKPT=/abs/path/model_x.pt"
+    ensure_teacher_checkpoint
     python scripts/rl_base/train_baseline.py \
         "${HEADLESS_FLAG}" \
         --task "${TASK_BASELINE}" \
@@ -175,7 +231,7 @@ run_baseline_pure_rl() {
 }
 
 run_baseline_play() {
-    require_file "${BASELINE_CKPT}" "Run 'bash run.sh baseline_train' first or set BASELINE_CKPT=/abs/path/model_x.pt"
+    ensure_baseline_checkpoint
     python scripts/rl_base/play_baseline.py \
         "${HEADLESS_FLAG}" \
         --task "${TASK_BASELINE}" \
@@ -187,7 +243,7 @@ run_baseline_play() {
 }
 
 run_baseline_eval() {
-    require_file "${BASELINE_CKPT}" "Run 'bash run.sh baseline_train' first or set BASELINE_CKPT=/abs/path/model_x.pt"
+    ensure_baseline_checkpoint
     python scripts/rl_base/eval_baseline_policy.py \
         "${HEADLESS_FLAG}" \
         --task "${TASK_BASELINE}" \
@@ -215,10 +271,29 @@ run_baseline_offpolicy() {
         --offpolicy_train_freq "${TRAIN_FREQ}" \
         --offpolicy_gradient_steps "${GRAD_STEPS}" \
         --offpolicy_tau "${TAU}" \
-        --offpolicy_gamma "${GAMMA}"
+        --offpolicy_gamma "${GAMMA}" \
+        --offpolicy_save_interval "${OFFPOLICY_SAVE_INTERVAL}"
+}
+
+run_smoke_all() {
+    run_teacher_train
+    TEACHER_CKPT="$(latest_checkpoint "${TEACHER_CKPT_ROOT}")"
+    run_teacher_play
+    run_baseline_train
+    BASELINE_CKPT="$(latest_checkpoint "${BASELINE_CKPT_ROOT}")"
+    run_baseline_pure_bc
+    run_baseline_pure_rl
+    BASELINE_CKPT="$(latest_checkpoint "${BASELINE_CKPT_ROOT}")"
+    run_baseline_play
+    run_baseline_eval
+    run_baseline_offpolicy td3
+    run_baseline_offpolicy sac
 }
 
 case "${MODE}" in
+    smoke_all)
+        run_smoke_all
+        ;;
     teacher_train)
         run_teacher_train
         ;;
@@ -253,5 +328,5 @@ case "${MODE}" in
         echo "[ERROR] Unknown mode: ${MODE}"
         usage
         exit 1
-        ;;
+    ;;
 esac
