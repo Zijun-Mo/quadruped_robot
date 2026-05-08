@@ -1,3 +1,5 @@
+"""Utility functions for export deploy configuration in the Unitree RL Lab extension."""
+
 import numpy as np
 import os
 import yaml
@@ -9,6 +11,7 @@ from isaaclab.utils.string import resolve_matching_names
 
 
 def format_value(x):
+    """Format a Python value for the exported deployment configuration file."""
     if isinstance(x, float):
         return float(f"{x:.3g}")
     elif isinstance(x, list):
@@ -20,6 +23,7 @@ def format_value(x):
 
 
 def export_deploy_cfg(env: ManagerBasedRLEnv, log_dir):
+    """Export the deploy configuration artifact."""
     asset: Articulation = env.scene["robot"]
     joint_sdk_names = env.cfg.scene.robot.joint_sdk_names
     joint_ids_map, _ = resolve_matching_names(asset.data.joint_names, joint_sdk_names, preserve_order=True)

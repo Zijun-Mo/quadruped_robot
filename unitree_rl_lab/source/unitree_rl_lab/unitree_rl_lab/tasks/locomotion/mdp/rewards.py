@@ -1,3 +1,5 @@
+"""Reward terms used by Unitree locomotion reinforcement-learning environments."""
+
 from __future__ import annotations
 
 import torch
@@ -36,6 +38,7 @@ def stand_still(
     lin_vel_scale: float = 0.0,
     ang_vel_scale: float = 0.0,
 ) -> torch.Tensor:
+    """Compute the stand still reward term for an Isaac Lab environment."""
     asset: Articulation = env.scene[asset_cfg.name]
 
     penalty = torch.sum(torch.abs(asset.data.joint_pos - asset.data.default_joint_pos), dim=1)
@@ -114,6 +117,7 @@ Feet rewards.
 
 def feet_stumble(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
     # extract the used quantities (to enable type-hinting)
+    """Compute the feet stumble reward term for an Isaac Lab environment."""
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     forces_z = torch.abs(contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, 2])
     forces_xy = torch.linalg.norm(contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, :2], dim=2)
@@ -162,6 +166,7 @@ def foot_clearance_reward(
 def feet_too_near(
     env: ManagerBasedRLEnv, threshold: float = 0.2, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
+    """Compute the feet too near reward term for an Isaac Lab environment."""
     asset: Articulation = env.scene[asset_cfg.name]
     feet_pos = asset.data.body_pos_w[:, asset_cfg.body_ids, :]
     distance = torch.norm(feet_pos[:, 0] - feet_pos[:, 1], dim=-1)
@@ -210,6 +215,7 @@ def feet_gait(
     threshold: float = 0.5,
     command_name=None,
 ) -> torch.Tensor:
+    """Compute the feet gait reward term for an Isaac Lab environment."""
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     is_contact = contact_sensor.data.current_contact_time[:, sensor_cfg.body_ids] > 0
 
@@ -278,6 +284,7 @@ Other rewards.
 
 def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joints: list[list[str]]) -> torch.Tensor:
     # extract the used quantities (to enable type-hinting)
+    """Compute the joint mirror reward term for an Isaac Lab environment."""
     asset: Articulation = env.scene[asset_cfg.name]
     if not hasattr(env, "joint_mirror_joints_cache") or env.joint_mirror_joints_cache is None:
         # Cache joint positions for all pairs
@@ -301,6 +308,7 @@ def vel_tracking_success(
     command_name: str = "base_velocity",
     lin_thresh: float = 0.1,
 ) -> torch.Tensor:
+    """Compute the velocity tracking success reward term for an Isaac Lab environment."""
     asset: Articulation = env.scene["robot"]
     cmd_b = env.command_manager.get_command(command_name)
     vel_b = asset.data.root_lin_vel_b[:, :2]

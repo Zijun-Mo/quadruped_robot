@@ -3,6 +3,9 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+
+"""Velocity-tracking environment configuration for a Unitree robot task variant."""
+
 import math
 from dataclasses import MISSING
 
@@ -324,6 +327,7 @@ class ObservationsCfg:
 
         def __post_init__(self):
             #self.history_length = 5
+            """Apply PolicyCfg defaults after base configuration construction."""
             self.enable_corruption = True
             self.concatenate_terms = True
             #self.flatten_history_dim = False
@@ -570,8 +574,10 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
 
 
 class UnitreeGo2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+    """Configuration container for unitree go2 rough environment configuration."""
     def __post_init__(self):
         # post init of parent
+        """Apply UnitreeGo2RoughEnvCfg defaults after base configuration construction."""
         super().__post_init__()
 
         self.scene.robot = UNITREE_GO2_CFG_lab.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -618,8 +624,10 @@ class UnitreeGo2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
 @configclass
 class UnitreeGo2RoughEnvCfg_PLAY(UnitreeGo2RoughEnvCfg):
+    """Play-mode Go2 rough-terrain configuration with smaller scenes for evaluation."""
     def __post_init__(self):
         # post init of parent
+        """Apply UnitreeGo2RoughEnvCfg_PLAY defaults after base configuration construction."""
         super().__post_init__()
 
         # make a smaller scene for play

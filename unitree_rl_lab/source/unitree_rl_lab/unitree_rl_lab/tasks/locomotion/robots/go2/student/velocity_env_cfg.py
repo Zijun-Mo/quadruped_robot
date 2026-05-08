@@ -3,6 +3,9 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+
+"""Velocity-tracking environment configuration for a Unitree robot task variant."""
+
 import math
 from dataclasses import MISSING
 from isaaclab.utils.noise import NoiseModel, NoiseModelCfg
@@ -51,6 +54,7 @@ class BurstNoiseModel(NoiseModel):
 
     def __init__(self, cfg, num_envs: int, device: str | torch.device):
         # ObservationManager passes (cfg, num_envs, device)
+        """Initialize BurstNoiseModel with configuration, tensor shapes, and runtime state."""
         super().__init__(cfg, num_envs, device)
         # Keep a public alias for convenience since the base stores it as _noise_model_cfg
         self.cfg = cfg
@@ -80,6 +84,7 @@ class BurstNoiseModel(NoiseModel):
             self.shared_id = None
 
     def __call__(self, data: torch.Tensor) -> torch.Tensor:
+        """Implement Python call protocol behavior."""
         if self.steps_until_burst is None or self.burst_steps_left is None:
             return data
         if self.burst_bias is None or self.burst_bias.shape != data.shape:
@@ -133,6 +138,7 @@ class BurstNoiseModel(NoiseModel):
         return data_noisy
 
     def reset(self, env_ids=None):
+        """Reset environment, module, or buffer state."""
         if env_ids is None:
             env_ids = slice(None)
             count = self.burst_steps_left.shape[0]
@@ -150,6 +156,7 @@ class BurstNoiseModel(NoiseModel):
             self.burst_bias[env_ids] = 0.0
 
     def _apply_base_noise(self, data: torch.Tensor) -> torch.Tensor:
+        """Apply configured burst noise to the base observation tensor."""
         cfg = getattr(self.cfg, "base_noise", None)
         if cfg is None:
             return data
@@ -167,6 +174,7 @@ class BurstNoiseModel(NoiseModel):
 
     @staticmethod
     def _sample_range(bounds: Tuple[int, int], count: int, device: torch.device) -> torch.Tensor:
+        """Sample integer timesteps from inclusive lower and upper bounds."""
         low, high = bounds
         if high < low:
             high = low
@@ -176,6 +184,7 @@ class BurstNoiseModel(NoiseModel):
 @configclass
 class BurstNoiseModelCfg(NoiseModelCfg):
     #step
+    """Configuration container for burst noise model configuration."""
     interval_steps_range: Tuple[int, int] = (30, 60)
     burst_steps_range: Tuple[int, int] = (10, 25)
     burst_std: float = 1.0
@@ -186,6 +195,7 @@ class BurstNoiseModelCfg(NoiseModelCfg):
     normalize: bool = False
 
     def __post_init__(self):
+        """Apply BurstNoiseModelCfg defaults after base configuration construction."""
         try:
             super().__post_init__()
         except AttributeError:
@@ -491,6 +501,7 @@ class ObservationsCfg:
         last_action = ObsTerm(func=mdp.last_action, clip=(-100, 100))
 
         def __post_init__(self):
+            """Apply PolicyCfg defaults after base configuration construction."""
             self.history_length = 3
             self.enable_corruption = True
             self.concatenate_terms = True
@@ -738,8 +749,10 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
 
 
 class UnitreeGo2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+    """Configuration container for unitree go2 rough environment configuration."""
     def __post_init__(self):
         # post init of parent
+        """Apply UnitreeGo2RoughEnvCfg defaults after base configuration construction."""
         super().__post_init__()
 
         self.scene.robot = UNITREE_GO2_CFG_lab.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -786,8 +799,10 @@ class UnitreeGo2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
 @configclass
 class UnitreeGo2RoughEnvCfg_PLAY(UnitreeGo2RoughEnvCfg):
+    """Play-mode Go2 rough-terrain configuration with smaller scenes for evaluation."""
     def __post_init__(self):
         # post init of parent
+        """Apply UnitreeGo2RoughEnvCfg_PLAY defaults after base configuration construction."""
         super().__post_init__()
 
         # make a smaller scene for play

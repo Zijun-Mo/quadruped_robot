@@ -30,6 +30,7 @@ def _walk_packages(
     """
 
     def seen(p, m={}):
+        """Handle the seen step for this command line workflow."""
         if p in m:
             return True
         m[p] = True  # noqa: R503
@@ -57,6 +58,7 @@ def _walk_packages(
 
 
 def import_packages():
+    """Handle the import packages step for this command line workflow."""
     sys.path.insert(0, f"{pathlib.Path(__file__).parent.parent}/source/unitree_rl_lab/unitree_rl_lab/tasks/")
     for package in ["locomotion.robots", "mimic.robots"]:
         package = importlib.import_module(package)

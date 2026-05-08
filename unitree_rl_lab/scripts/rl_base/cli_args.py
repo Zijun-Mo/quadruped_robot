@@ -3,6 +3,9 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+
+"""Command line utility for command line args workflows with rl_base."""
+
 from __future__ import annotations
 
 import argparse

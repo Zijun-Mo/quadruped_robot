@@ -220,13 +220,16 @@ import unitree_rl_lab.tasks  # noqa: F401
 from unitree_rl_lab.utils.export_deploy_cfg import export_deploy_cfg
 
 class WaypointWrapper(gym.Wrapper):
+    """Environment wrapper that adapts waypoint behavior to rl_base expectations."""
     def __init__(self, env, waypoint_manager):
+        """Initialize WaypointWrapper with configuration, tensor shapes, and runtime state."""
         super().__init__(env)
         self.waypoint_manager = waypoint_manager
         self.command_manager = self.unwrapped.command_manager
 
     def step(self, action):
         # Compute waypoints before physics step
+        """Advance the environment wrapper by one action step."""
         with torch.no_grad():
             robot_pos = self.unwrapped.scene["robot"].data.root_pos_w
             # Get yaw
@@ -275,6 +278,7 @@ class WaypointWrapper(gym.Wrapper):
 
 
 def _to_numpy(data):
+    """Handle the to numpy step for this command line workflow."""
     if isinstance(data, torch.Tensor):
         return data.detach().cpu().numpy()
     if isinstance(data, dict):
@@ -287,6 +291,7 @@ def _to_numpy(data):
 
 
 def _squeeze_env_dim(data):
+    """Handle the squeeze environment dim step for this command line workflow."""
     if isinstance(data, np.ndarray):
         if data.ndim > 0 and data.shape[0] == 1:
             return data[0]
@@ -301,6 +306,7 @@ def _squeeze_env_dim(data):
 
 
 def _to_scalar(data, cast_type=float):
+    """Handle the to scalar step for this command line workflow."""
     value = _to_numpy(data)
     if isinstance(value, np.ndarray):
         flat = value.reshape(-1)
@@ -314,6 +320,7 @@ class OffPolicyVecEnvWrapper(gym.Wrapper):
     """Convert IsaacLab tensor-based vector env to local off-policy Gym API."""
 
     def __init__(self, env):
+        """Initialize OffPolicyVecEnvWrapper with configuration, tensor shapes, and runtime state."""
         super().__init__(env)
         num_envs = int(getattr(self.unwrapped, "num_envs", 1))
         if num_envs < 1:
@@ -394,6 +401,7 @@ class OffPolicyVecEnvWrapper(gym.Wrapper):
 
     @staticmethod
     def _strip_batch_dim(space, num_envs: int):
+        """Handle the strip batch dim step for this command line workflow."""
         if isinstance(space, gym.spaces.Box) and len(space.shape) > 0 and space.shape[0] == num_envs:
             low = np.array(space.low[0], copy=True)
             high = np.array(space.high[0], copy=True)
@@ -413,6 +421,7 @@ class OffPolicyVecEnvWrapper(gym.Wrapper):
         return space
 
     def _format_action_for_env(self, action):
+        """Handle the format action for environment step for this command line workflow."""
         action_np = np.asarray(action, dtype=np.float32)
         single_shape = self.single_action_space.shape
         batched_shape = (self.num_envs, *single_shape)
@@ -429,6 +438,7 @@ class OffPolicyVecEnvWrapper(gym.Wrapper):
 
     def _to_batched_obs(self, obs):
         # First flatten Dict observations
+        """Handle the to batched observations step for this command line workflow."""
         obs = self._flatten_obs(obs)
         obs = _to_numpy(obs)
         obs_arr = np.asarray(obs)
@@ -439,6 +449,7 @@ class OffPolicyVecEnvWrapper(gym.Wrapper):
         return obs_arr
 
     def _to_batched_scalar(self, values, dtype):
+        """Handle the to batched scalar step for this command line workflow."""
         arr = np.asarray(_to_numpy(values))
         if arr.ndim == 0:
             arr = np.repeat(arr.reshape(1), self.num_envs)
@@ -446,12 +457,14 @@ class OffPolicyVecEnvWrapper(gym.Wrapper):
         return arr.astype(dtype, copy=False)
 
     def reset(self, *, seed=None, options=None):
+        """Reset environment, module, or buffer state."""
         obs, info = self.env.reset(seed=seed, options=options)
         obs = self._to_batched_obs(obs)
         info = _to_numpy(info)
         return obs, info
 
     def step(self, action):
+        """Advance the environment wrapper by one action step."""
         env_action = self._format_action_for_env(action)
 
         # Check episode_length_buf BEFORE step to detect resets
@@ -521,6 +534,7 @@ def _run_local_offpolicy_training(
     wandb_project: str | None = None,
     save_interval: int = 5000,
 ):
+    """Handle the run local offpolicy training step for this command line workflow."""
     from rl_base.algorithms import SAC, TD3
     import wandb
     from collections import deque
@@ -529,7 +543,9 @@ def _run_local_offpolicy_training(
 
     # Wrap environment to collect metrics - similar to PPO's approach
     class WandbLoggingWrapper(gym.Wrapper):
+        """Environment wrapper that adapts wandb logging behavior to rl_base expectations."""
         def __init__(self, env, num_envs):
+            """Initialize WandbLoggingWrapper with configuration, tensor shapes, and runtime state."""
             super().__init__(env)
             self.num_envs = num_envs
             # Episode storage (like PPO)
@@ -543,12 +559,14 @@ def _run_local_offpolicy_training(
             self.start_time = time.time()
 
         def reset(self, **kwargs):
+            """Reset environment, module, or buffer state."""
             obs, info = self.env.reset(**kwargs)
             self.cur_reward_sum[:] = 0
             self.cur_episode_length[:] = 0
             return obs, info
 
         def step(self, action):
+            """Advance the environment wrapper by one action step."""
             obs, reward, terminated, truncated, info = super().step(action)
             dones = terminated | truncated
 

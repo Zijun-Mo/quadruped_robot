@@ -74,6 +74,7 @@ if args_cli.video:
 
 
 def _make_activation(name: str) -> torch.nn.Module:
+    """Handle the make activation step for this command line workflow."""
     name = name.lower()
     if name == "elu":
         return torch.nn.ELU()
@@ -93,6 +94,7 @@ def _make_activation(name: str) -> torch.nn.Module:
 
 
 def _build_mlp_from_state_dict(prefix: str, state_dict: dict[str, torch.Tensor], activation_name: str) -> torch.nn.Sequential:
+    """Handle the build MLP from state dict step for this command line workflow."""
     linear_indices = sorted(
         {
             int(key[len(prefix) + 1 :].split(".")[0])
@@ -128,6 +130,7 @@ class _StudentPolicyExporter(torch.nn.Module):
         student_height_dim: int = 0,
         normalizer: torch.nn.Module | None = None,
     ):
+        """Initialize _StudentPolicyExporter with configuration, tensor shapes, and runtime state."""
         super().__init__()
         self.rnn = copy.deepcopy(rnn)
         self.student_encoder = copy.deepcopy(student_encoder)
@@ -146,12 +149,14 @@ class _StudentPolicyExporter(torch.nn.Module):
             raise NotImplementedError(f"Unsupported recurrent policy type for ONNX export: {self.rnn_type}")
 
     def _normalize_and_split(self, obs: torch.Tensor) -> torch.Tensor:
+        """Handle the normalize and split step for this command line workflow."""
         obs = self.normalizer(obs)
         if self.student_height_dim > 0:
             return obs[..., :-self.student_height_dim]
         return obs
 
     def forward(self, obs: torch.Tensor, h_in: torch.Tensor, c_in: torch.Tensor | None = None):
+        """Run the forward pass for this module."""
         core_obs = self._normalize_and_split(obs)
         if self.rnn_type == "lstm":
             if c_in is None:
@@ -167,6 +172,7 @@ class _StudentPolicyExporter(torch.nn.Module):
         return actions, h_out, c_out
 
     def export_onnx(self, path: str, filename: str = "policy.onnx"):
+        """Handle the export ONNX step for this command line workflow."""
         os.makedirs(path, exist_ok=True)
         obs = torch.zeros(1, self.rnn.input_size, dtype=torch.float32)
         h_in = torch.zeros(self.rnn.num_layers, 1, self.rnn.hidden_size, dtype=torch.float32)
@@ -199,6 +205,7 @@ class _StudentPolicyExporter(torch.nn.Module):
 
 
 def _maybe_get_student_exporter(policy_nn, normalizer=None):
+    """Handle the maybe get student exporter step for this command line workflow."""
     if not all(hasattr(policy_nn, attr) for attr in ("memory_s", "student_encoder", "student_policy_head")):
         return None
     rnn = getattr(policy_nn.memory_s, "rnn", None)
@@ -215,6 +222,7 @@ def _maybe_get_student_exporter(policy_nn, normalizer=None):
 
 
 def _resolve_export_checkpoint(args_cli, agent_cfg):
+    """Handle the resolve export checkpoint step for this command line workflow."""
     from isaaclab.utils.assets import retrieve_file_path
     from isaaclab.utils.pretrained_checkpoint import get_published_pretrained_checkpoint
     from isaaclab_tasks.utils import get_checkpoint_path
@@ -234,6 +242,7 @@ def _resolve_export_checkpoint(args_cli, agent_cfg):
 
 
 def _export_checkpoint_without_env(args_cli):
+    """Handle the export checkpoint without environment step for this command line workflow."""
     if not args_cli.checkpoint:
         raise RuntimeError("--export_only currently requires an explicit --checkpoint path.")
     resume_path = os.path.abspath(args_cli.checkpoint)
@@ -297,6 +306,7 @@ def main():
     from unitree_rl_lab.utils.parser_cfg import parse_env_cfg
 
     def _iter_nested(obj):
+        """Handle the iter nested step for this command line workflow."""
         if obj is None:
             return
         if isinstance(obj, dict):
@@ -495,6 +505,7 @@ def main():
         actor.eval()
 
         def _flatten_obs(obs, extras=None):
+            """Handle the flatten observations step for this command line workflow."""
             obs_dict = extras.get("observations") if extras else None
             if obs_dict is None:
                 obs_dict = obs if isinstance(obs, dict) else None

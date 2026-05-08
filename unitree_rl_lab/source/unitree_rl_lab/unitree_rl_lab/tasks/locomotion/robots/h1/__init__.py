@@ -1,3 +1,5 @@
+"""Package initializer for the unitree_rl_lab.unitree_rl_lab.tasks.locomotion.robots.h1 namespace."""
+
 import gymnasium as gym
 
 gym.register(

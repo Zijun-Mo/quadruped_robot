@@ -146,13 +146,16 @@ import unitree_rl_lab.tasks  # noqa: F401
 from unitree_rl_lab.utils.export_deploy_cfg import export_deploy_cfg
 
 class WaypointWrapper(gym.Wrapper):
+    """Environment wrapper that adapts waypoint behavior to rl_base expectations."""
     def __init__(self, env, waypoint_manager):
+        """Initialize WaypointWrapper with configuration, tensor shapes, and runtime state."""
         super().__init__(env)
         self.waypoint_manager = waypoint_manager
         self.command_manager = self.unwrapped.command_manager
 
     def step(self, action):
         # Compute waypoints before physics step
+        """Advance the environment wrapper by one action step."""
         with torch.no_grad():
             robot_pos = self.unwrapped.scene["robot"].data.root_pos_w
             # Get yaw

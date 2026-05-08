@@ -1,3 +1,5 @@
+"""Curriculum update functions for Unitree locomotion command ranges."""
+
 from __future__ import annotations
 
 import torch
@@ -54,6 +56,7 @@ def lin_vel_cmd_levels(
     env_ids: Sequence[int],
     reward_term_name: str = "track_lin_vel_xy",
 ) -> torch.Tensor:
+    """Update the lin velocity command levels curriculum state for an Isaac Lab environment."""
     command_term = env.command_manager.get_term("base_velocity")
     ranges = command_term.cfg.ranges
     limit_ranges = command_term.cfg.limit_ranges
@@ -149,6 +152,7 @@ def ang_vel_cmd_levels(
     env_ids: Sequence[int],
     reward_term_name: str = "track_ang_vel_z",
 ) -> torch.Tensor:
+    """Update the angular velocity command levels curriculum state for an Isaac Lab environment."""
     command_term = env.command_manager.get_term("base_velocity")
     ranges = command_term.cfg.ranges
     limit_ranges = command_term.cfg.limit_ranges

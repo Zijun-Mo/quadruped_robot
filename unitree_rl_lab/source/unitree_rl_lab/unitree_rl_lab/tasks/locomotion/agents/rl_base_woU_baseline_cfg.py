@@ -3,12 +3,16 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+
+"""Agent and runner configuration objects for Unitree locomotion tasks."""
+
 from isaaclab.utils import configclass
 from rl_base.isaaclab_support import RlBaseOnPolicyRunnerCfg, RlBasePpoActorCriticCfg, RlBasePpoAlgorithmCfg,RlBaseDistillationAlgorithmCfg
 
 
 @configclass
 class TerrainAwarePpoActorCriticCfg(RlBasePpoActorCriticCfg):
+    """Configuration container for terrain aware PPO actor critic configuration."""
     class_name = "TerrainAwareActorCritic"
     height_obs_dim: int = 0
     height_encoder_dims = (256, 128)
@@ -21,6 +25,7 @@ class TerrainAwarePpoActorCriticCfg(RlBasePpoActorCriticCfg):
 
 @configclass
 class TerrainAwareStudentTeacherCfg(RlBasePpoActorCriticCfg):
+    """Configuration container for terrain aware student teacher configuration."""
     class_name = "TerrainAwareStudentTeacher"
     teacher_height_obs_dim: int = 0
     student_height_obs_dim: int = 0
@@ -39,6 +44,7 @@ class TerrainAwareStudentTeacherCfg(RlBasePpoActorCriticCfg):
 
 @configclass
 class BasePPORunnerCfg(RlBaseOnPolicyRunnerCfg):
+    """Configuration container for base p p o runner configuration."""
     num_steps_per_env = 24
     max_iterations = 50000
     save_interval = 100
@@ -74,6 +80,7 @@ class BasePPORunnerCfg(RlBaseOnPolicyRunnerCfg):
 
 @configclass
 class TerrainAwarePPORunnerCfg(BasePPORunnerCfg):
+    """Configuration container for terrain aware p p o runner configuration."""
     policy = TerrainAwarePpoActorCriticCfg(
         init_noise_std=1.0,
         actor_hidden_dims=[512, 256, 128],
@@ -85,6 +92,7 @@ class TerrainAwarePPORunnerCfg(BasePPORunnerCfg):
 
 @configclass
 class TerrainAwareDistillationAlgorithmCfg(RlBaseDistillationAlgorithmCfg):
+    """Configuration container for terrain aware distillation algorithm configuration."""
     class_name = "Distillation"
     learning_rate = 5.0e-4
     gradient_length = 15
@@ -139,6 +147,7 @@ class TerrainAwareDistillationAlgorithmCfg(RlBaseDistillationAlgorithmCfg):
 
 @configclass
 class TerrainAwareDistillationRunnerCfg(BasePPORunnerCfg):
+    """Configuration container for terrain aware distillation runner configuration."""
     policy = TerrainAwareStudentTeacherCfg(
         init_noise_std=0.1,
         teacher_height_obs_dim=88,
@@ -151,6 +160,7 @@ class TerrainAwareDistillationRunnerCfg(BasePPORunnerCfg):
 
 @configclass
 class UnitreeGo2RoughPPORunnerCfg(RlBaseOnPolicyRunnerCfg):
+    """Configuration container for unitree go2 rough p p o runner configuration."""
     num_steps_per_env = 24
     max_iterations = 1500
     save_interval = 50

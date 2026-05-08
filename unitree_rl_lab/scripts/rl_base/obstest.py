@@ -1,11 +1,15 @@
 # 用于直观检查最终 obs 的组成与 shape
 
+
+"""Command line utility for obstest workflows with rl_base."""
+
 import torch
 from isaaclab.envs import ManagerBasedRLEnv
 from unitree_rl_lab.tasks.locomotion.robots.go2.velocity_env_cfg import RobotPlayEnvCfg, RobotEnvCfg
 
 def infer_num_joints(env):
     # 多种兼容方式尝试获取关节数
+    """Handle the infer num joints step for this command line workflow."""
     robot = getattr(env.scene, "robot", None)
     if robot is not None and hasattr(robot, "num_dof"):
         return int(robot.num_dof)
@@ -20,6 +24,7 @@ def infer_num_joints(env):
 
 def infer_height_dim(env):
     # 优先从传感器拿；如不可得，按 size/resolution 估计
+    """Handle the infer height dim step for this command line workflow."""
     sensor = env.scene.sensors.get("height_scanner", None)
     if sensor is not None:
         # 常见属性尝试
@@ -38,9 +43,11 @@ def infer_height_dim(env):
 
 def split_last_frame_terms(vec_last_frame, n_j, n_h, is_critic=False):
     # 按 ObservationsCfg 中定义顺序切片（单帧）
+    """Handle the split last frame terms step for this command line workflow."""
     idx = 0
     out = {}
     def take(k):
+        """Handle the take step for this command line workflow."""
         nonlocal idx
         s = vec_last_frame[..., idx:idx+k]
         idx += k
@@ -60,6 +67,7 @@ def split_last_frame_terms(vec_last_frame, n_j, n_h, is_critic=False):
     return out
 
 def main():
+    """Parse command line arguments and run the script entry point."""
     cfg = RobotPlayEnvCfg()  # 或 RobotEnvCfg() 用于训练配置
     env = ManagerBasedRLEnv(cfg)
 

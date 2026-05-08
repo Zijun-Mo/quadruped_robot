@@ -1,3 +1,5 @@
+"""Package initializer for the unitree_rl_lab.unitree_rl_lab.tasks.locomotion.robots.go2.student namespace."""
+
 import gymnasium as gym
 
 gym.register(
@@ -10,9 +12,3 @@ gym.register(
         "rl_base_cfg_entry_point": f"unitree_rl_lab.tasks.locomotion.agents.rl_base_woU_baseline_cfg:TerrainAwareDistillationRunnerCfg",
     },
 )
-
-
-
-
-
-

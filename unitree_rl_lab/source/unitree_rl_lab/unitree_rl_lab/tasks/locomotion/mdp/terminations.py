@@ -1,3 +1,5 @@
+"""Termination terms used by Unitree locomotion reinforcement-learning environments."""
+
 from __future__ import annotations
 
 import torch

@@ -1,3 +1,5 @@
+"""Robot asset and environment configuration for Unitree mimic tasks."""
+
 from __future__ import annotations
 
 import os
@@ -148,11 +150,13 @@ class ObservationsCfg:
         last_action = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
+            """Apply PolicyCfg defaults after base configuration construction."""
             self.enable_corruption = True
             self.concatenate_terms = True
 
     @configclass
     class PrivilegedCfg(ObsGroup):
+        """Configuration container for privileged configuration."""
         command = ObsTerm(func=mdp.generated_commands, params={"command_name": "motion"})
         motion_anchor_pos_b = ObsTerm(func=mdp.motion_anchor_pos_b, params={"command_name": "motion"})
         motion_anchor_ori_b = ObsTerm(func=mdp.motion_anchor_ori_b, params={"command_name": "motion"})
@@ -337,7 +341,9 @@ class RobotEnvCfg(ManagerBasedRLEnvCfg):
 
 
 class RobotPlayEnvCfg(RobotEnvCfg):
+    """Configuration container for robot play environment configuration."""
     def __post_init__(self):
+        """Apply RobotPlayEnvCfg defaults after base configuration construction."""
         super().__post_init__()
         self.scene.num_envs = 1
         self.episode_length_s = 1e9

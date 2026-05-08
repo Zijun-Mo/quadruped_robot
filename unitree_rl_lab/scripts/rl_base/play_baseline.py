@@ -146,6 +146,7 @@ def main():
         actor.eval()
 
         def _flatten_obs(obs, extras=None):
+            """Handle the flatten observations step for this command line workflow."""
             obs_dict = extras.get("observations") if extras else None
             if obs_dict is None:
                 obs_dict = obs if isinstance(obs, dict) else None

@@ -1,3 +1,5 @@
+"""Velocity-tracking environment configuration for a Unitree robot task variant."""
+
 import math
 
 import isaaclab.sim as sim_utils
@@ -203,6 +205,7 @@ class ObservationsCfg:
         # gait_phase = ObsTerm(func=mdp.gait_phase, params={"period": 0.8})
 
         def __post_init__(self):
+            """Apply PolicyCfg defaults after base configuration construction."""
             self.history_length = 5
             self.enable_corruption = True
             self.concatenate_terms = True
@@ -228,6 +231,7 @@ class ObservationsCfg:
         # )
 
         def __post_init__(self):
+            """Apply CriticCfg defaults after base configuration construction."""
             self.history_length = 5
 
     # privileged observations
@@ -405,7 +409,9 @@ class RobotEnvCfg(ManagerBasedRLEnvCfg):
 
 @configclass
 class RobotPlayEnvCfg(RobotEnvCfg):
+    """Configuration container for robot play environment configuration."""
     def __post_init__(self):
+        """Apply RobotPlayEnvCfg defaults after base configuration construction."""
         super().__post_init__()
         self.scene.num_envs = 32
         self.scene.terrain.terrain_generator.num_rows = 2

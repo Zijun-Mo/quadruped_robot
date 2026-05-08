@@ -1,3 +1,5 @@
+"""Observation terms used by Unitree locomotion reinforcement-learning environments."""
+
 from __future__ import annotations
 
 import torch
@@ -10,6 +12,7 @@ if TYPE_CHECKING:
 
 
 def gait_phase(env: ManagerBasedRLEnv, period: float) -> torch.Tensor:
+    """Compute the gait phase observation term for an Isaac Lab environment."""
     if not hasattr(env, "episode_length_buf"):
         env.episode_length_buf = torch.zeros(env.num_envs, device=env.device, dtype=torch.long)
 

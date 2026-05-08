@@ -1,8 +1,11 @@
+"""Example Omniverse UI extension for the Unitree RL Lab package."""
+
 import omni.ext
 
 
 # Functions and vars are available to other extension as usual in python: `example.python_ext.some_public_function(x)`
 def some_public_function(x: int):
+    """Return a small string used by the extension example."""
     print("[unitree_rl_lab] some_public_function was called with x: ", x)
     return x**x
 
@@ -13,7 +16,9 @@ def some_public_function(x: int):
 class ExampleExtension(omni.ext.IExt):
     # ext_id is current extension id. It can be used with extension manager to query additional information, like where
     # this extension is located on filesystem.
+    """Minimal Omniverse extension that demonstrates UI lifecycle callbacks."""
     def on_startup(self, ext_id):
+        """Build the example extension window when the extension starts."""
         print("[unitree_rl_lab] startup")
 
         self._count = 0
@@ -24,10 +29,12 @@ class ExampleExtension(omni.ext.IExt):
                 label = omni.ui.Label("")
 
                 def on_click():
+                    """Update the label after the example button is clicked."""
                     self._count += 1
                     label.text = f"count: {self._count}"
 
                 def on_reset():
+                    """Reset the example extension click counter and label."""
                     self._count = 0
                     label.text = "empty"
 
@@ -38,4 +45,5 @@ class ExampleExtension(omni.ext.IExt):
                     omni.ui.Button("Reset", clicked_fn=on_reset)
 
     def on_shutdown(self):
+        """Release references when the example extension shuts down."""
         print("[unitree_rl_lab] shutdown")

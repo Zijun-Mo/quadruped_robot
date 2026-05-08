@@ -1,3 +1,5 @@
+"""Robot asset and environment configuration for Unitree mimic tasks."""
+
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg

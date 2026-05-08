@@ -1,3 +1,5 @@
+"""Motion command loading and sampling utilities for mimic tasks."""
+
 from __future__ import annotations
 
 import math
@@ -28,7 +30,9 @@ if TYPE_CHECKING:
 
 
 class MotionLoader:
+    """Motion-reference helper for mimic-task motion loader data."""
     def __init__(self, motion_file: str, body_indexes: Sequence[int], device: str = "cpu"):
+        """Initialize MotionLoader with configuration, tensor shapes, and runtime state."""
         assert os.path.isfile(motion_file), f"Invalid file path: {motion_file}"
         data = np.load(motion_file)
         self.fps = data["fps"]
@@ -43,25 +47,31 @@ class MotionLoader:
 
     @property
     def body_pos_w(self) -> torch.Tensor:
+        """Return selected body positions in the world frame."""
         return self._body_pos_w[:, self._body_indexes]
 
     @property
     def body_quat_w(self) -> torch.Tensor:
+        """Return selected body orientations in the world frame."""
         return self._body_quat_w[:, self._body_indexes]
 
     @property
     def body_lin_vel_w(self) -> torch.Tensor:
+        """Return selected body linear velocities in the world frame."""
         return self._body_lin_vel_w[:, self._body_indexes]
 
     @property
     def body_ang_vel_w(self) -> torch.Tensor:
+        """Return selected body angular velocities in the world frame."""
         return self._body_ang_vel_w[:, self._body_indexes]
 
 
 class MotionCommand(CommandTerm):
+    """Motion-reference helper for mimic-task motion command data."""
     cfg: MotionCommandCfg
 
     def __init__(self, cfg: MotionCommandCfg, env: ManagerBasedRLEnv):
+        """Initialize MotionCommand with configuration, tensor shapes, and runtime state."""
         super().__init__(cfg, env)
 
         self.robot: Articulation = env.scene[cfg.asset_name]
@@ -99,89 +109,111 @@ class MotionCommand(CommandTerm):
 
     @property
     def command(self) -> torch.Tensor:  # TODO Consider again if this is the best observation
+        """Return the reference joint position and velocity command tensor."""
         return torch.cat([self.joint_pos, self.joint_vel], dim=1)
 
     @property
     def joint_pos(self) -> torch.Tensor:
+        """Return reference joint positions for the current motion timesteps."""
         return self.motion.joint_pos[self.time_steps]
 
     @property
     def joint_vel(self) -> torch.Tensor:
+        """Return reference joint velocities for the current motion timesteps."""
         return self.motion.joint_vel[self.time_steps]
 
     @property
     def body_pos_w(self) -> torch.Tensor:
+        """Return selected body positions in the world frame."""
         return self.motion.body_pos_w[self.time_steps] + self._env.scene.env_origins[:, None, :]
 
     @property
     def body_quat_w(self) -> torch.Tensor:
+        """Return selected body orientations in the world frame."""
         return self.motion.body_quat_w[self.time_steps]
 
     @property
     def body_lin_vel_w(self) -> torch.Tensor:
+        """Return selected body linear velocities in the world frame."""
         return self.motion.body_lin_vel_w[self.time_steps]
 
     @property
     def body_ang_vel_w(self) -> torch.Tensor:
+        """Return selected body angular velocities in the world frame."""
         return self.motion.body_ang_vel_w[self.time_steps]
 
     @property
     def anchor_pos_w(self) -> torch.Tensor:
+        """Return the reference anchor position in the world frame."""
         return self.motion.body_pos_w[self.time_steps, self.motion_anchor_body_index] + self._env.scene.env_origins
 
     @property
     def anchor_quat_w(self) -> torch.Tensor:
+        """Return the reference anchor orientation in the world frame."""
         return self.motion.body_quat_w[self.time_steps, self.motion_anchor_body_index]
 
     @property
     def anchor_lin_vel_w(self) -> torch.Tensor:
+        """Return the reference anchor linear velocity in the world frame."""
         return self.motion.body_lin_vel_w[self.time_steps, self.motion_anchor_body_index]
 
     @property
     def anchor_ang_vel_w(self) -> torch.Tensor:
+        """Return the reference anchor angular velocity in the world frame."""
         return self.motion.body_ang_vel_w[self.time_steps, self.motion_anchor_body_index]
 
     @property
     def robot_joint_pos(self) -> torch.Tensor:
+        """Return current robot joint positions from articulation data."""
         return self.robot.data.joint_pos
 
     @property
     def robot_joint_vel(self) -> torch.Tensor:
+        """Return current robot joint velocities from articulation data."""
         return self.robot.data.joint_vel
 
     @property
     def robot_body_pos_w(self) -> torch.Tensor:
+        """Return selected robot body positions in the world frame."""
         return self.robot.data.body_pos_w[:, self.body_indexes]
 
     @property
     def robot_body_quat_w(self) -> torch.Tensor:
+        """Return selected robot body orientations in the world frame."""
         return self.robot.data.body_quat_w[:, self.body_indexes]
 
     @property
     def robot_body_lin_vel_w(self) -> torch.Tensor:
+        """Return selected robot body linear velocities in the world frame."""
         return self.robot.data.body_lin_vel_w[:, self.body_indexes]
 
     @property
     def robot_body_ang_vel_w(self) -> torch.Tensor:
+        """Return selected robot body angular velocities in the world frame."""
         return self.robot.data.body_ang_vel_w[:, self.body_indexes]
 
     @property
     def robot_anchor_pos_w(self) -> torch.Tensor:
+        """Return the robot anchor position in the world frame."""
         return self.robot.data.body_pos_w[:, self.robot_anchor_body_index]
 
     @property
     def robot_anchor_quat_w(self) -> torch.Tensor:
+        """Return the robot anchor orientation in the world frame."""
         return self.robot.data.body_quat_w[:, self.robot_anchor_body_index]
 
     @property
     def robot_anchor_lin_vel_w(self) -> torch.Tensor:
+        """Return the robot anchor linear velocity in the world frame."""
         return self.robot.data.body_lin_vel_w[:, self.robot_anchor_body_index]
 
     @property
     def robot_anchor_ang_vel_w(self) -> torch.Tensor:
+        """Return the robot anchor angular velocity in the world frame."""
         return self.robot.data.body_ang_vel_w[:, self.robot_anchor_body_index]
 
     def _update_metrics(self):
+        """Compute or expose the update metrics command quantity for the task."""
         self.metrics["error_anchor_pos"] = torch.norm(self.anchor_pos_w - self.robot_anchor_pos_w, dim=-1)
         self.metrics["error_anchor_rot"] = quat_error_magnitude(self.anchor_quat_w, self.robot_anchor_quat_w)
         self.metrics["error_anchor_lin_vel"] = torch.norm(self.anchor_lin_vel_w - self.robot_anchor_lin_vel_w, dim=-1)
@@ -205,6 +237,7 @@ class MotionCommand(CommandTerm):
         self.metrics["error_joint_vel"] = torch.norm(self.joint_vel - self.robot_joint_vel, dim=-1)
 
     def _adaptive_sampling(self, env_ids: Sequence[int]):
+        """Compute or expose the adaptive sampling command quantity for the task."""
         episode_failed = self._env.termination_manager.terminated[env_ids]
         if torch.any(episode_failed):
             current_bin_index = torch.clamp(
@@ -241,6 +274,7 @@ class MotionCommand(CommandTerm):
         self.metrics["sampling_top1_bin"][:] = imax.float() / self.bin_count
 
     def _resample_command(self, env_ids: Sequence[int]):
+        """Compute or expose the resample command command quantity for the task."""
         if len(env_ids) == 0:
             return
         self._adaptive_sampling(env_ids)
@@ -277,6 +311,7 @@ class MotionCommand(CommandTerm):
         )
 
     def _update_command(self):
+        """Compute or expose the update command command quantity for the task."""
         self.time_steps += 1
         env_ids = torch.where(self.time_steps >= self.motion.time_step_total)[0]
         self._resample_command(env_ids)
@@ -299,6 +334,7 @@ class MotionCommand(CommandTerm):
         self._current_bin_failed.zero_()
 
     def _set_debug_vis_impl(self, debug_vis: bool):
+        """Compute or expose the set debug vis impl command quantity for the task."""
         if debug_vis:
             if not hasattr(self, "current_anchor_visualizer"):
                 self.current_anchor_visualizer = VisualizationMarkers(
@@ -337,6 +373,7 @@ class MotionCommand(CommandTerm):
                     self.goal_body_visualizers[i].set_visibility(False)
 
     def _debug_vis_callback(self, event):
+        """Compute or expose the debug vis callback command quantity for the task."""
         if not self.robot.is_initialized:
             return
 

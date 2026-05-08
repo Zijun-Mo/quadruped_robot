@@ -1,3 +1,5 @@
+"""Event functions for resetting mimic-task robot and motion state."""
+
 from __future__ import annotations
 
 import torch

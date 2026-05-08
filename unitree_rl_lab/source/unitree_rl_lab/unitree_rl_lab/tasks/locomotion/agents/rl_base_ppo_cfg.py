@@ -3,12 +3,16 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+
+"""Agent and runner configuration objects for Unitree locomotion tasks."""
+
 from isaaclab.utils import configclass
 from rl_base.isaaclab_support import RlBaseOnPolicyRunnerCfg, RlBasePpoActorCriticCfg, RlBasePpoAlgorithmCfg,RlBaseDistillationAlgorithmCfg
 
 
 @configclass
 class TerrainAwarePpoActorCriticCfg(RlBasePpoActorCriticCfg):
+    """Configuration container for terrain aware PPO actor critic configuration."""
     class_name = "TerrainAwareActorCritic"
     height_obs_dim: int = 0
     height_encoder_dims = (256, 128)
@@ -21,6 +25,7 @@ class TerrainAwarePpoActorCriticCfg(RlBasePpoActorCriticCfg):
 
 @configclass
 class TerrainAwareStudentTeacherCfg(RlBasePpoActorCriticCfg):
+    """Configuration container for terrain aware student teacher configuration."""
     class_name = "TerrainAwareStudentTeacher"
     teacher_height_obs_dim: int = 0
     student_height_obs_dim: int = 0
@@ -39,6 +44,7 @@ class TerrainAwareStudentTeacherCfg(RlBasePpoActorCriticCfg):
 
 @configclass
 class RecurrentPpoActorCriticCfg(RlBasePpoActorCriticCfg):
+    """Configuration container for recurrent PPO actor critic configuration."""
     class_name = "ActorCriticRecurrent"
     rnn_type = "lstm"
     critic_height_obs_dim: int = 0
@@ -46,6 +52,7 @@ class RecurrentPpoActorCriticCfg(RlBasePpoActorCriticCfg):
     rnn_num_layers = 1
 @configclass
 class BasePPORunnerCfg(RlBaseOnPolicyRunnerCfg):
+    """Configuration container for base p p o runner configuration."""
     num_steps_per_env = 24
     max_iterations = 50000
     save_interval = 100
@@ -80,12 +87,14 @@ class BasePPORunnerCfg(RlBaseOnPolicyRunnerCfg):
 
 @configclass
 class TerrainAwarePPOAlgorithmCfg(RlBasePpoAlgorithmCfg):
+    """Configuration container for terrain aware p p o algorithm configuration."""
     latent_corr_coef = 0.5
     latent_corr_eps = 1e-6
     
 
 @configclass
 class TerrainAwarePPORunnerCfg(BasePPORunnerCfg):
+    """Configuration container for terrain aware p p o runner configuration."""
     policy = TerrainAwarePpoActorCriticCfg(
         init_noise_std=1.0,
         actor_hidden_dims=[512, 256, 128],
@@ -99,6 +108,7 @@ class TerrainAwarePPORunnerCfg(BasePPORunnerCfg):
 
 @configclass
 class TerrainAwareDistillationAlgorithmCfg(RlBaseDistillationAlgorithmCfg):
+    """Configuration container for terrain aware distillation algorithm configuration."""
     class_name = "Distillation"
     learning_rate = 5.0e-4
     gradient_length = 15
@@ -117,6 +127,7 @@ class TerrainAwareDistillationAlgorithmCfg(RlBaseDistillationAlgorithmCfg):
 
 @configclass
 class TerrainAwareDistillationRunnerCfg(BasePPORunnerCfg):
+    """Configuration container for terrain aware distillation runner configuration."""
     policy = TerrainAwareStudentTeacherCfg(
         init_noise_std=1.0,
         teacher_height_obs_dim=88,
@@ -128,6 +139,7 @@ class TerrainAwareDistillationRunnerCfg(BasePPORunnerCfg):
 
 @configclass
 class StudentPPORunnerCfg(RlBaseOnPolicyRunnerCfg):
+    """Configuration container for student p p o runner configuration."""
     num_steps_per_env = 24
     max_iterations = 50000
     save_interval = 100
@@ -162,6 +174,3 @@ class StudentPPORunnerCfg(RlBaseOnPolicyRunnerCfg):
         desired_kl=0.01,
         max_grad_norm=1.0,
     )
-
-
-

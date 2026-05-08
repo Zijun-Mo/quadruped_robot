@@ -1,3 +1,5 @@
+"""Observation terms that expose robot and reference-motion state for mimic tasks."""
+
 from __future__ import annotations
 
 import torch
@@ -12,24 +14,28 @@ if TYPE_CHECKING:
 
 
 def robot_anchor_ori_w(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    """Compute the robot anchor ori w observation term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     mat = matrix_from_quat(command.robot_anchor_quat_w)
     return mat[..., :2].reshape(mat.shape[0], -1)
 
 
 def robot_anchor_lin_vel_w(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    """Compute the robot anchor lin velocity w observation term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
 
     return command.robot_anchor_vel_w[:, :3].view(env.num_envs, -1)
 
 
 def robot_anchor_ang_vel_w(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    """Compute the robot anchor angular velocity w observation term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
 
     return command.robot_anchor_vel_w[:, 3:6].view(env.num_envs, -1)
 
 
 def robot_body_pos_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    """Compute the robot body pos b observation term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
 
     num_bodies = len(command.cfg.body_names)
@@ -44,6 +50,7 @@ def robot_body_pos_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
 
 
 def robot_body_ori_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    """Compute the robot body ori b observation term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
 
     num_bodies = len(command.cfg.body_names)
@@ -58,6 +65,7 @@ def robot_body_ori_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
 
 
 def motion_anchor_pos_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    """Compute the motion anchor pos b observation term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
 
     pos, _ = subtract_frame_transforms(
@@ -71,6 +79,7 @@ def motion_anchor_pos_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor
 
 
 def motion_anchor_ori_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    """Compute the motion anchor ori b observation term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
 
     _, ori = subtract_frame_transforms(

@@ -1,3 +1,5 @@
+"""Velocity-tracking environment configuration for a Unitree robot task variant."""
+
 import math
 
 import isaaclab.sim as sim_utils
@@ -204,6 +206,7 @@ class ObservationsCfg:
 
         def __post_init__(self):
             # self.history_length = 5
+            """Apply PolicyCfg defaults after base configuration construction."""
             self.enable_corruption = True
             self.concatenate_terms = True
 
@@ -412,7 +415,9 @@ class RobotEnvCfg(ManagerBasedRLEnvCfg):
 
 @configclass
 class RobotPlayEnvCfg(RobotEnvCfg):
+    """Configuration container for robot play environment configuration."""
     def __post_init__(self):
+        """Apply RobotPlayEnvCfg defaults after base configuration construction."""
         super().__post_init__()
         self.scene.num_envs = 32
         self.scene.terrain.terrain_generator.num_rows = 2

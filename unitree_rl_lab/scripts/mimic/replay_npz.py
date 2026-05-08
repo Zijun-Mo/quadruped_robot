@@ -64,6 +64,7 @@ class ReplayMotionsSceneCfg(InteractiveSceneCfg):
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     # Extract scene entities
+    """Handle the run simulator step for this command line workflow."""
     robot: Articulation = scene["robot"]
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
@@ -98,6 +99,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 
 
 def main():
+    """Parse command line arguments and run the script entry point."""
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim_cfg.dt = 0.02
     sim = SimulationContext(sim_cfg)

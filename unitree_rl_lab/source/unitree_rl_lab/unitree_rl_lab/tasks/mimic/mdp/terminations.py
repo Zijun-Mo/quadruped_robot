@@ -1,3 +1,5 @@
+"""Termination terms that stop mimic episodes after large tracking errors."""
+
 from __future__ import annotations
 
 import torch
@@ -20,11 +22,13 @@ from unitree_rl_lab.tasks.mimic.mdp.rewards import _get_body_indexes
 
 
 def bad_anchor_pos(env: ManagerBasedRLEnv, command_name: str, threshold: float) -> torch.Tensor:
+    """Return the bad anchor pos termination mask for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     return torch.norm(command.anchor_pos_w - command.robot_anchor_pos_w, dim=1) > threshold
 
 
 def bad_anchor_pos_z_only(env: ManagerBasedRLEnv, command_name: str, threshold: float) -> torch.Tensor:
+    """Return the bad anchor pos z only termination mask for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     return torch.abs(command.anchor_pos_w[:, -1] - command.robot_anchor_pos_w[:, -1]) > threshold
 
@@ -32,6 +36,7 @@ def bad_anchor_pos_z_only(env: ManagerBasedRLEnv, command_name: str, threshold: 
 def bad_anchor_ori(
     env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, command_name: str, threshold: float
 ) -> torch.Tensor:
+    """Return the bad anchor ori termination mask for an Isaac Lab environment."""
     asset: RigidObject | Articulation = env.scene[asset_cfg.name]
 
     command: MotionCommand = env.command_manager.get_term(command_name)
@@ -45,6 +50,7 @@ def bad_anchor_ori(
 def bad_motion_body_pos(
     env: ManagerBasedRLEnv, command_name: str, threshold: float, body_names: list[str] | None = None
 ) -> torch.Tensor:
+    """Return the bad motion body pos termination mask for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
 
     body_indexes = _get_body_indexes(command, body_names)
@@ -55,6 +61,7 @@ def bad_motion_body_pos(
 def bad_motion_body_pos_z_only(
     env: ManagerBasedRLEnv, command_name: str, threshold: float, body_names: list[str] | None = None
 ) -> torch.Tensor:
+    """Return the bad motion body pos z only termination mask for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
 
     body_indexes = _get_body_indexes(command, body_names)

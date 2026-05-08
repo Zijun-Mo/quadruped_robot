@@ -84,6 +84,7 @@ class ReplayMotionsSceneCfg(InteractiveSceneCfg):
 
 
 class MotionLoader:
+    """Motion-reference helper for mimic-task motion loader data."""
     def __init__(
         self,
         motion_file: str,
@@ -92,6 +93,7 @@ class MotionLoader:
         device: torch.device,
         frame_range: tuple[int, int] | None,
     ):
+        """Initialize MotionLoader with configuration, tensor shapes, and runtime state."""
         self.motion_file = motion_file
         self.input_fps = input_fps
         self.output_fps = output_fps

@@ -1,3 +1,5 @@
+"""Utility functions for parser configuration in the Unitree RL Lab extension."""
+
 from isaaclab.envs import DirectRLEnvCfg, ManagerBasedRLEnvCfg
 from isaaclab_tasks.utils.parse_cfg import load_cfg_from_registry
 

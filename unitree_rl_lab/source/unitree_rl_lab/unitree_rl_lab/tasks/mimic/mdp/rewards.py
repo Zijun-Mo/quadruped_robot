@@ -1,3 +1,5 @@
+"""Reward terms that compare robot state against reference motion clips."""
+
 from __future__ import annotations
 
 import torch
@@ -14,16 +16,19 @@ if TYPE_CHECKING:
 
 
 def _get_body_indexes(command: MotionCommand, body_names: list[str] | None) -> list[int]:
+    """Compute the get body indexes reward term for an Isaac Lab environment."""
     return [i for i, name in enumerate(command.cfg.body_names) if (body_names is None) or (name in body_names)]
 
 
 def motion_global_anchor_position_error_exp(env: ManagerBasedRLEnv, command_name: str, std: float) -> torch.Tensor:
+    """Compute the motion global anchor position error exp reward term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     error = torch.sum(torch.square(command.anchor_pos_w - command.robot_anchor_pos_w), dim=-1)
     return torch.exp(-error / std**2)
 
 
 def motion_global_anchor_orientation_error_exp(env: ManagerBasedRLEnv, command_name: str, std: float) -> torch.Tensor:
+    """Compute the motion global anchor orientation error exp reward term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     error = quat_error_magnitude(command.anchor_quat_w, command.robot_anchor_quat_w) ** 2
     return torch.exp(-error / std**2)
@@ -32,6 +37,7 @@ def motion_global_anchor_orientation_error_exp(env: ManagerBasedRLEnv, command_n
 def motion_relative_body_position_error_exp(
     env: ManagerBasedRLEnv, command_name: str, std: float, body_names: list[str] | None = None
 ) -> torch.Tensor:
+    """Compute the motion relative body position error exp reward term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     body_indexes = _get_body_indexes(command, body_names)
     error = torch.sum(
@@ -43,6 +49,7 @@ def motion_relative_body_position_error_exp(
 def motion_relative_body_orientation_error_exp(
     env: ManagerBasedRLEnv, command_name: str, std: float, body_names: list[str] | None = None
 ) -> torch.Tensor:
+    """Compute the motion relative body orientation error exp reward term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     body_indexes = _get_body_indexes(command, body_names)
     error = (
@@ -55,6 +62,7 @@ def motion_relative_body_orientation_error_exp(
 def motion_global_body_linear_velocity_error_exp(
     env: ManagerBasedRLEnv, command_name: str, std: float, body_names: list[str] | None = None
 ) -> torch.Tensor:
+    """Compute the motion global body linear velocity error exp reward term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     body_indexes = _get_body_indexes(command, body_names)
     error = torch.sum(
@@ -66,6 +74,7 @@ def motion_global_body_linear_velocity_error_exp(
 def motion_global_body_angular_velocity_error_exp(
     env: ManagerBasedRLEnv, command_name: str, std: float, body_names: list[str] | None = None
 ) -> torch.Tensor:
+    """Compute the motion global body angular velocity error exp reward term for an Isaac Lab environment."""
     command: MotionCommand = env.command_manager.get_term(command_name)
     body_indexes = _get_body_indexes(command, body_names)
     error = torch.sum(
@@ -75,6 +84,7 @@ def motion_global_body_angular_velocity_error_exp(
 
 
 def feet_contact_time(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, threshold: float) -> torch.Tensor:
+    """Compute the feet contact time reward term for an Isaac Lab environment."""
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     first_air = contact_sensor.compute_first_air(env.step_dt, env.physics_dt)[:, sensor_cfg.body_ids]
     last_contact_time = contact_sensor.data.last_contact_time[:, sensor_cfg.body_ids]

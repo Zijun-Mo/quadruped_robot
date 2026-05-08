@@ -1,3 +1,5 @@
+"""Unitree robot asset and actuator configuration definitions."""
+
 from __future__ import annotations
 
 import torch
@@ -42,6 +44,7 @@ class UnitreeActuator(DelayedPDActuator):
     """
 
     def __init__(self, cfg: UnitreeActuatorCfg, *args, **kwargs):
+        """Initialize UnitreeActuator with configuration, tensor shapes, and runtime state."""
         super().__init__(cfg, *args, **kwargs)
 
         self._joint_vel = torch.zeros_like(self.computed_effort)
@@ -57,6 +60,7 @@ class UnitreeActuator(DelayedPDActuator):
         self, control_action: ArticulationActions, joint_pos: torch.Tensor, joint_vel: torch.Tensor
     ) -> ArticulationActions:
         # save current joint vel
+        """Compute actuator outputs from the current control command."""
         self._joint_vel[:] = joint_vel
         # calculate the desired joint torques
         control_action = super().compute(control_action, joint_pos, joint_vel)
@@ -74,6 +78,7 @@ class UnitreeActuator(DelayedPDActuator):
 
     def _clip_effort(self, effort: torch.Tensor) -> torch.Tensor:
         # check if the effort is the same direction as the joint velocity
+        """Clip actuator effort according to the computed torque limit."""
         same_direction = (self._joint_vel * effort) > 0
         max_effort = torch.where(same_direction, self._effort_y1, self._effort_y2)
         # check if the joint velocity is less than the max speed at full torque
@@ -83,6 +88,7 @@ class UnitreeActuator(DelayedPDActuator):
         return torch.clip(effort, -max_effort, max_effort)
 
     def _compute_effort_limit(self, max_effort):
+        """Compute actuator torque limits from velocity-dependent motor curves."""
         k = -max_effort / (self._velocity_x2 - self._velocity_x1)
         limit = k * (self._joint_vel.abs() - self._velocity_x1) + max_effort
         return limit.clip(min=0.0)
@@ -120,6 +126,7 @@ class UnitreeActuatorCfg(DelayedPDActuatorCfg):
 
 @configclass
 class UnitreeActuatorCfg_M107_15(UnitreeActuatorCfg):
+    """Unitree robot hardware configuration for unitree actuator configuration m107 15."""
     X1 = 14.0
     X2 = 25.6
     Y1 = 150.0
@@ -130,6 +137,7 @@ class UnitreeActuatorCfg_M107_15(UnitreeActuatorCfg):
 
 @configclass
 class UnitreeActuatorCfg_M107_24(UnitreeActuatorCfg):
+    """Unitree robot hardware configuration for unitree actuator configuration m107 24."""
     X1 = 8.8
     X2 = 16
     Y1 = 240
@@ -140,6 +148,7 @@ class UnitreeActuatorCfg_M107_24(UnitreeActuatorCfg):
 
 @configclass
 class UnitreeActuatorCfg_Go2HV(UnitreeActuatorCfg):
+    """Unitree robot hardware configuration for unitree actuator configuration go2 h v."""
     X1 = 13.5
     X2 = 30
     Y1 = 20.2
@@ -149,6 +158,7 @@ class UnitreeActuatorCfg_Go2HV(UnitreeActuatorCfg):
 @configclass
 class UnitreeActuatorCfg_N7520_14p3(UnitreeActuatorCfg):
     # Decimal point cannot be used as variable name, use `p` instead
+    """Unitree robot hardware configuration for unitree actuator configuration n7520 14p3."""
     X1 = 22.63
     X2 = 35.52
     Y1 = 71
@@ -168,6 +178,7 @@ class UnitreeActuatorCfg_N7520_14p3(UnitreeActuatorCfg):
 @configclass
 class UnitreeActuatorCfg_N7520_22p5(UnitreeActuatorCfg):
     # Decimal point cannot be used as variable name, use `p` instead
+    """Unitree robot hardware configuration for unitree actuator configuration n7520 22p5."""
     X1 = 14.5
     X2 = 22.7
     Y1 = 111.0
@@ -186,6 +197,7 @@ class UnitreeActuatorCfg_N7520_22p5(UnitreeActuatorCfg):
 
 @configclass
 class UnitreeActuatorCfg_N5010_16(UnitreeActuatorCfg):
+    """Unitree robot hardware configuration for unitree actuator configuration n5010 16."""
     X1 = 27.0
     X2 = 41.5
     Y1 = 9.5
@@ -201,6 +213,7 @@ class UnitreeActuatorCfg_N5010_16(UnitreeActuatorCfg):
 
 @configclass
 class UnitreeActuatorCfg_N5020_16(UnitreeActuatorCfg):
+    """Unitree robot hardware configuration for unitree actuator configuration n5020 16."""
     X1 = 30.86
     X2 = 40.13
     Y1 = 24.8
@@ -219,6 +232,7 @@ class UnitreeActuatorCfg_N5020_16(UnitreeActuatorCfg):
 
 @configclass
 class UnitreeActuatorCfg_W4010_25(UnitreeActuatorCfg):
+    """Unitree robot hardware configuration for unitree actuator configuration w4010 25."""
     X1 = 15.3
     X2 = 24.76
     Y1 = 4.8

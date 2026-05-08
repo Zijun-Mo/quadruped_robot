@@ -7,6 +7,7 @@ import torch
 
 def main():
     # Make the environment
+    """Parse command line arguments and run the script entry point."""
     env = gym.make("Unitree-Go2-Velocity-lab-Rough-Env-v0", num_envs=8, headless=True)
 
     # Reset

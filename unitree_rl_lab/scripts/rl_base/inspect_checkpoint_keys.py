@@ -1,3 +1,5 @@
+"""Command line utility for inspect checkpoint keys workflows with rl_base."""
+
 from __future__ import annotations
 
 import argparse
@@ -8,6 +10,7 @@ import torch
 
 
 def summarize_prefixes(keys: list[str], depth: int = 2) -> Counter[str]:
+    """Handle the summarize prefixes step for this command line workflow."""
     counter: Counter[str] = Counter()
     for key in keys:
         parts = key.split(".")
@@ -17,6 +20,7 @@ def summarize_prefixes(keys: list[str], depth: int = 2) -> Counter[str]:
 
 
 def main() -> None:
+    """Parse command line arguments and run the script entry point."""
     parser = argparse.ArgumentParser(description="Inspect checkpoint keys and checkpoint layout.")
     parser.add_argument("checkpoint", type=Path, help="Path to checkpoint .pt file")
     args = parser.parse_args()
